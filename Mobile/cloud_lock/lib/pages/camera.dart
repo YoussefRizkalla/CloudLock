@@ -126,6 +126,23 @@ class DisplayPictureScreen extends StatelessWidget {
     }
   }
 
+  Future<http.Response> postFirebase(String body) async {
+    try {
+      List<dynamic> json = jsonDecode(body);
+      String faceId = json[0]['faceId'];
+      Map<String, String> bodyToSend = new Map();
+      bodyToSend['key'] = faceId;
+
+      Map<String, String> headers = new Map();
+      headers['Content-Type'] = 'application/json';
+
+      Response response = await http.post('https://cloudlock-ca508.firebaseapp.com/putToFirebase', body: jsonEncode(bodyToSend), headers: headers);
+      return response;
+    } catch (e) {
+      return new Response('Failed', 50);
+    }
+  }
+
     Future<http.Response> verify(Uint8List image) async {
       try {
         Map<String, String> headers = new Map();
@@ -157,8 +174,10 @@ class DisplayPictureScreen extends StatelessWidget {
       // constructor with the given path to display the image.
       body: Image.file(File(imagePath)),
       floatingActionButton: FloatingActionButton(onPressed: () async { 
-        Response response = await verify(File(imagePath).readAsBytesSync());
+        Response response = await fetchPost(File(imagePath).readAsBytesSync());
         print(response.body);
+        Response response2 = await postFirebase(response.body);
+        print(response2.body);
       }),
     );
   }
