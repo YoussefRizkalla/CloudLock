@@ -116,29 +116,36 @@ class DisplayPictureScreen extends StatelessWidget {
   const DisplayPictureScreen({Key key, this.imagePath}) : super(key: key);
 
   Future<http.Response> fetchPost(Uint8List image) async {
-    Map<String, String> headers = new Map();
-    headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
-    headers['Content-Type'] = 'application/octet-stream';
-    print(headers);
-    return await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
+    try {
+      Map<String, String> headers = new Map();
+      headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
+      headers['Content-Type'] = 'application/octet-stream';
+      return await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
+    } catch (e) {
+       return new Response('Failed', 500); 
+    }
   }
 
     Future<http.Response> verify(Uint8List image) async {
-    Map<String, String> headers = new Map();
-    headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
-    headers['Content-Type'] = 'application/octet-stream';
+      try {
+        Map<String, String> headers = new Map();
+        headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
+        headers['Content-Type'] = 'application/octet-stream';
 
-    Response response = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
-    String face1 = '64e98c7e-eb59-4cc0-9b8d-b62d8d30d0d1';
-    List<dynamic> json = jsonDecode(response.body);
-    String face2 = json[0]['faceId'];
+        Response response = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
+        String face1 = '64e98c7e-eb59-4cc0-9b8d-b62d8d30d0d1';
+        List<dynamic> json = jsonDecode(response.body);
+        String face2 = json[0]['faceId'];
 
-    Map<String, String> body = new Map();
-    body['faceId1'] = face1;
-    body['faceId2'] = face2;
+        Map<String, String> body = new Map();
+        body['faceId1'] = face1;
+        body['faceId2'] = face2;
         headers['Content-Type'] = 'application/json';
 
-    return await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/verify', headers: headers, body: jsonEncode(body));
+        return await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/verify', headers: headers, body: jsonEncode(body));
+      } catch (e) {
+          return new Response('Failed', 500); 
+      }
   }
 
 

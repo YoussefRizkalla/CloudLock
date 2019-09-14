@@ -44,7 +44,17 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+  assets:
+    - assets/
 
+  fonts:
+  - family: BadScript
+    fonts:
+      - asset: fonts/BadScript-Regular.ttf
+  
+  - family: IndieFlower
+    fonts:
+      - asset: fonts/IndieFlower-Regular.ttf
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
