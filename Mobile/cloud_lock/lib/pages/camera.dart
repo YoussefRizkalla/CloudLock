@@ -145,7 +145,7 @@ class CameraPageState extends State<CameraPage> {
 
             bool isMatch = await checkFace(path);
             Navigator.push(context, MaterialPageRoute(
-                builder: (context) => DisplayPictureScreen(message: isMatch ? "YOU'RE IN" : "INTRUDER REE",),),);
+                builder: (context) => DisplayPictureScreen(isMatch: isMatch,),),);
 
           } catch (e) {
             // If an error occurs, log the error to the console.
@@ -159,8 +159,8 @@ class CameraPageState extends State<CameraPage> {
 
 // A widget that displays the picture taken by the user.
 class DisplayPictureScreen extends StatelessWidget {
-  final String message;
-  const DisplayPictureScreen({Key key, this.message}) : super(key: key);
+  final bool isMatch;
+  const DisplayPictureScreen({Key key, this.isMatch}) : super(key: key);
 
   Future<http.Response> fetchPost(Uint8List image) async {
     try {
@@ -193,8 +193,33 @@ class DisplayPictureScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(message)),
-      body: Text(message),
+      appBar: AppBar(title: Text(isMatch ? "Welcome Home!" : "Go Away :(", textAlign: TextAlign.center, style: TextStyle(fontSize: 32, fontFamily: 'IndieFlower')),),
+      body: Container ( 
+        child: Center (
+          child: Column (
+            mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                HomePicture(),
+                Text(isMatch ? 'Have a Good Day :)' : 'If you are a member of this household, contact the card holder to gain accesss', textAlign: TextAlign.center,),
+              ],
+            ) 
+        )
+      )
+    );
+  }
+}
+
+class HomePicture extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 250,
+      height: 250,
+      decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/home.png'),
+            fit: BoxFit.cover),
+      ),
     );
   }
 }
