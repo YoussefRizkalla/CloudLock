@@ -1,8 +1,8 @@
+import 'package:camera/camera.dart';
+import 'package:cloud_lock/pages/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nfc_plugin/models/nfc_event.dart';
-import 'package:flutter_nfc_plugin/models/nfc_state.dart';
 import 'package:flutter_nfc_plugin/nfc_plugin.dart';
-import 'package:flutter/services.dart';
 
 void main() => runApp(MyApp());
 
@@ -25,6 +25,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: MyHomePage(title: 'Cloud Lock'),
+      
     );
   }
 }
@@ -49,6 +50,28 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  int _selectedIndex = 0;
+  CameraDescription _camera;
+
+  Future setCamera() async {
+    // Obtain a list of the available cameras on the device.
+    final cameras = await availableCameras();
+    // Get a specific camera from the list of available cameras.
+    _camera = cameras[1]; 
+  }
+
+  void _onItemTapped(int index) {
+    setState(() async {
+      _selectedIndex = index;
+      if (index == 1) {
+        await setCamera();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CameraPage(camera: _camera,)),
+        );
+      }
+    });
+  }
 
   Future _testhisshit() async {
     NfcPlugin nfcPlugin = NfcPlugin();
@@ -122,7 +145,27 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _testhisshit,
         tooltip: 'Increment',
         child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ), 
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            title: Text('Home'),
+            
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera),
+            title: Text('Camera'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.school),
+            title: Text('School'),
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.amber[800],
+        onTap: _onItemTapped,
+      ),
     );
   }
 }

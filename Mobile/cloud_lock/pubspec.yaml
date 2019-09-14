@@ -29,6 +29,10 @@ dependencies:
       url: git://github.com/dukhanov/flutter-nfc-plugin.git
       ref: master
 
+  camera:
+  path_provider:
+  path:
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
