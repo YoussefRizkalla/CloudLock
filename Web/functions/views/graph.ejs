@@ -2,6 +2,11 @@
 <%include ./partials/navbar%>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
 
+<style>
+    *{
+        font-family: 'Ubuntu',sans-serif;
+    }
+</style>
 
 <div class="row m-2">
     <div class="charts w-50 ml-5" >
@@ -37,7 +42,7 @@ EnterChart = new Chart(document.getElementById("UsageChart"), {
     options: {
       title: {
         display: true,
-        text: 'Usage'
+        text: 'Usage',
       },scales: {
         yAxes: [{
             ticks: {
@@ -52,7 +57,7 @@ EnterChart = new Chart(document.getElementById("UsageChart"), {
             scaleLabel: {
                 display: true,
                 labelString: 'User ID'
-            }
+            },
         }]
       }
     }
@@ -63,7 +68,6 @@ EnterChart = new Chart(document.getElementById("UsageChart"), {
       labels: ["Fail","Success"],
       datasets: [{ 
           data: [55,45],
-          label: "Number of times used",
           borderColor: "#3e95cd",
           backgroundColor: [
               'rgba(255, 99, 132)',
@@ -74,7 +78,7 @@ EnterChart = new Chart(document.getElementById("UsageChart"), {
     options: {
       title: {
         display: true,
-        text: 'Usage'
+        text: 'Authentication attempts'
       }
     }
   });
