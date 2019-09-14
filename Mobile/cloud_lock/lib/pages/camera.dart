@@ -51,6 +51,57 @@ class CameraPageState extends State<CameraPage> {
     super.dispose();
   }
 
+  Future<List<String>> getFaceIds() async {
+    try {
+      Response response = await http.get('https://cloudlock-ca508.firebaseapp.com/faceid');
+      if (response.statusCode != 500){
+        String body = response.body;
+        List<dynamic> idObjects = jsonDecode(body);
+        List<String> ids = new List();
+        for (var item in idObjects) {
+          ids.add(item['key']);
+        }
+        return ids;
+      }
+      return new List();
+    } catch (e) {
+      return new List();
+    }
+  }
+
+  Future<bool> verify(Uint8List image, List<String> faceIds) async {
+    try {
+      Map<String, String> headers = new Map();
+      headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
+      headers['Content-Type'] = 'application/octet-stream';
+
+      Response response = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
+      List<dynamic> json = jsonDecode(response.body);
+      String face2 = json[0]['faceId'];
+
+      Map<String, String> body = new Map();
+      body['faceId2'] = face2;
+
+      for (var face in faceIds) {
+        body['faceId1'] = face;
+        headers['Content-Type'] = 'application/json';
+        Response result = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/verify', headers: headers, body: jsonEncode(body));
+        Map<String, dynamic> json = jsonDecode(result.body);
+        if (json['isIdentical'] == true) {
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+        return false;
+    }
+  }
+
+  Future<bool> checkFace(String imagePath) async {
+    List<String> faceIds = await getFaceIds();
+    return await verify(File(imagePath).readAsBytesSync(), faceIds);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,13 +143,10 @@ class CameraPageState extends State<CameraPage> {
             // Attempt to take a picture and log where it's been saved.
             await _controller.takePicture(path);
 
-            // If the picture was taken, display it on a new screen.
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DisplayPictureScreen(imagePath: path),
-              ),
-            );
+            bool isMatch = await checkFace(path);
+            Navigator.push(context, MaterialPageRoute(
+                builder: (context) => DisplayPictureScreen(message: isMatch ? "YOU'RE IN" : "INTRUDER REE",),),);
+
           } catch (e) {
             // If an error occurs, log the error to the console.
             print(e);
@@ -111,9 +159,8 @@ class CameraPageState extends State<CameraPage> {
 
 // A widget that displays the picture taken by the user.
 class DisplayPictureScreen extends StatelessWidget {
-  final String imagePath;
-
-  const DisplayPictureScreen({Key key, this.imagePath}) : super(key: key);
+  final String message;
+  const DisplayPictureScreen({Key key, this.message}) : super(key: key);
 
   Future<http.Response> fetchPost(Uint8List image) async {
     try {
@@ -143,42 +190,11 @@ class DisplayPictureScreen extends StatelessWidget {
     }
   }
 
-    Future<http.Response> verify(Uint8List image) async {
-      try {
-        Map<String, String> headers = new Map();
-        headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
-        headers['Content-Type'] = 'application/octet-stream';
-
-        Response response = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
-        String face1 = '64e98c7e-eb59-4cc0-9b8d-b62d8d30d0d1';
-        List<dynamic> json = jsonDecode(response.body);
-        String face2 = json[0]['faceId'];
-
-        Map<String, String> body = new Map();
-        body['faceId1'] = face1;
-        body['faceId2'] = face2;
-        headers['Content-Type'] = 'application/json';
-
-        return await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/verify', headers: headers, body: jsonEncode(body));
-      } catch (e) {
-          return new Response('Failed', 500); 
-      }
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Display the Picture')),
-      // The image is stored as a file on the device. Use the `Image.file`
-      // constructor with the given path to display the image.
-      body: Image.file(File(imagePath)),
-      floatingActionButton: FloatingActionButton(onPressed: () async { 
-        Response response = await fetchPost(File(imagePath).readAsBytesSync());
-        print(response.body);
-        Response response2 = await postFirebase(response.body);
-        print(response2.body);
-      }),
+      appBar: AppBar(title: Text(message)),
+      body: Text(message),
     );
   }
 }
