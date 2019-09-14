@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_nfc_plugin/models/nfc_event.dart';
+import 'package:flutter_nfc_plugin/models/nfc_state.dart';
+import 'package:flutter_nfc_plugin/nfc_plugin.dart';
+import 'package:flutter/services.dart';
 
 void main() => runApp(MyApp());
 
@@ -45,6 +49,19 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+
+  Future _testhisshit() async {
+    NfcPlugin nfcPlugin = NfcPlugin();
+    nfcPlugin.onNfcMessage.listen((NfcEvent event) {
+      if (event.error.isNotEmpty) {
+        print('NFC read error: ${event.error}');
+      } else {
+        print('NFC read successful');
+        print(event.message.payload.toString());
+        print(event.message.id);
+        }
+      });
+    }
 
   void _incrementCounter() {
     setState(() {
@@ -102,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _testhisshit,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
