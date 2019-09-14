@@ -6,8 +6,8 @@ module.exports = router.get("/graphs",(req,res)=>{
     let users = []
     db.collection("faceId").get().then((data)=>{
         data.forEach(data=>users.push(data.data()));
-        res.render("home",{users:users});
+        res.render("graph",{users:users});
     }).catch(()=>{
-        res.render("home",{users:[]})
+        res.render("graph",{users:[]})
     })
 })
