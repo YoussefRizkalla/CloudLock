@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -122,6 +123,24 @@ class DisplayPictureScreen extends StatelessWidget {
     return await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
   }
 
+    Future<http.Response> verify(Uint8List image) async {
+    Map<String, String> headers = new Map();
+    headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
+    headers['Content-Type'] = 'application/octet-stream';
+
+    Response response = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
+    String face1 = '64e98c7e-eb59-4cc0-9b8d-b62d8d30d0d1';
+    List<dynamic> json = jsonDecode(response.body);
+    String face2 = json[0]['faceId'];
+
+    Map<String, String> body = new Map();
+    body['faceId1'] = face1;
+    body['faceId2'] = face2;
+        headers['Content-Type'] = 'application/json';
+
+    return await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/verify', headers: headers, body: jsonEncode(body));
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +150,7 @@ class DisplayPictureScreen extends StatelessWidget {
       // constructor with the given path to display the image.
       body: Image.file(File(imagePath)),
       floatingActionButton: FloatingActionButton(onPressed: () async { 
-        Response response = await fetchPost(File(imagePath).readAsBytesSync());
+        Response response = await verify(File(imagePath).readAsBytesSync());
         print(response.body);
       }),
     );
