@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
+
+import 'package:http/http.dart' as http;
 
 // A screen that allows users to take a picture using a given camera.
 class CameraPage extends StatefulWidget {
@@ -110,6 +114,15 @@ class DisplayPictureScreen extends StatelessWidget {
 
   const DisplayPictureScreen({Key key, this.imagePath}) : super(key: key);
 
+  Future<http.Response> fetchPost(Uint8List image) async {
+    Map<String, String> headers = new Map();
+    headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
+    headers['Content-Type'] = 'application/octet-stream';
+    print(headers);
+    return await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,6 +130,10 @@ class DisplayPictureScreen extends StatelessWidget {
       // The image is stored as a file on the device. Use the `Image.file`
       // constructor with the given path to display the image.
       body: Image.file(File(imagePath)),
+      floatingActionButton: FloatingActionButton(onPressed: () async { 
+        Response response = await fetchPost(File(imagePath).readAsBytesSync());
+        print(response.body);
+      }),
     );
   }
 }
