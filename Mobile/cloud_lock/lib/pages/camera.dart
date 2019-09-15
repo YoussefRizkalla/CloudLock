@@ -88,12 +88,33 @@ class CameraPageState extends State<CameraPage> {
         Response result = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/verify', headers: headers, body: jsonEncode(body));
         Map<String, dynamic> json = jsonDecode(result.body);
         if (json['isIdentical'] == true) {
+          await postFirebaseAnalytics(face2, true);
           return true;
         }
       }
+      await postFirebaseAnalytics(face2, false);
       return false;
     } catch (e) {
+        await postFirebaseAnalytics('Unknown', false);
         return false;
+    }
+  }
+
+  Future<http.Response> postFirebaseAnalytics(String faceId, bool success) async {
+    try {
+      Map<String, dynamic> bodyToSend = new Map();
+      bodyToSend['key'] = faceId;
+      bodyToSend['date'] = DateTime.now().toString();
+      bodyToSend['success'] = success;
+
+      Map<String, String> headers = new Map();
+      headers['Content-Type'] = 'application/json';
+
+      Response response = await http.post('https://cloudlock-ca508.firebaseapp.com/analytics', body: jsonEncode(bodyToSend), headers: headers);
+      print(response.body);
+      return response;
+    } catch (e) {
+      return new Response('Failed', 500);
     }
   }
 
@@ -186,7 +207,7 @@ class DisplayPictureScreen extends StatelessWidget {
       Response response = await http.post('https://cloudlock-ca508.firebaseapp.com/putToFirebase', body: jsonEncode(bodyToSend), headers: headers);
       return response;
     } catch (e) {
-      return new Response('Failed', 50);
+      return new Response('Failed', 500);
     }
   }
 
