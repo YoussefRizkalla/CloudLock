@@ -69,6 +69,13 @@ class _MyHomePageState extends State<MyHomePage> {
   CameraDescription _camera;
   int _selectedIndex = 0;
 
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadNFC();
+  }
+
   void _onItemTapped(int index) {
     setState(() async {
       _selectedIndex = index;
@@ -85,24 +92,17 @@ class _MyHomePageState extends State<MyHomePage> {
   Future _loadNFC() async {
     NfcPlugin nfcPlugin = NfcPlugin();
     nfcPlugin.onNfcMessage.listen((NfcEvent event) async {
-      if (event.error.isNotEmpty) {
-        print('NFC read error: ${event.error}');
-      } else {
-        print('NFC read successful');
-        print(event.message.payload.toString());
-        print(event.message.id);
         await setCamera();
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => CameraPage(camera: _camera,)),
         );
-        }
-      });
-    }
+      }
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    _loadNFC();
     return Scaffold(
       appBar: AppBar(
         title: Center(child: Text(widget.title, textAlign: TextAlign.center, style: TextStyle(fontSize: 32, fontFamily: 'IndieFlower'),)),
