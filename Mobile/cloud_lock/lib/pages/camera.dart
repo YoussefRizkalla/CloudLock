@@ -88,11 +88,11 @@ class CameraPageState extends State<CameraPage> {
         Response result = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/verify', headers: headers, body: jsonEncode(body));
         Map<String, dynamic> json = jsonDecode(result.body);
         if (json['isIdentical'] == true) {
-          await postFirebaseAnalytics(face2, true);
+          await postFirebaseAnalytics(face, true);
           return true;
         }
       }
-      await postFirebaseAnalytics(face2, false);
+      await postFirebaseAnalytics(face2, false); 
       return false;
     } catch (e) {
         await postFirebaseAnalytics('Unknown', false);
