@@ -17,22 +17,39 @@
     <h1 class="heading"><i class="fas fa-unlock-alt"></i>Welcome to CloudLock</h1>
     
 
-    <table class="table">
+    <table class="table" id="tableUsers">
             <thead>
               <tr>
                 <th scope="col">User</th>
-                <th scope="col">Photo</th>
                 <th scope="col">Last Checked In</th>
                 <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
               <%for(let i = 0; i < users.length; i++){%>
-                <tr><td> <%=users[i]["key"]%></td></tr>
+                <tr>
+                    <th><%=users[i]['key']%></th>
+                    <td><%=users[i]['date']%></td>
+                    <td><%=users[i]['success']%></td>
+                </tr>
+              
               <%}%> 
               </tbody>
         </table>
       
     <button type="button" class="btn btn-primary" onclick="addUser()">Add User</button>
+<script>
+    function addUser() {
+        var table = document.getElementById("tableUsers");
+        var row = table.insertRow(table.length);
 
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+        var cell3 = row.insertCell(2);
+
+        cell1.innerHTML = "Generating";
+        cell2.innerHTML = "NULL";
+        cell3.innerHTML = "NULL";
+    }
+</script>
 <%include ./partials/footer%>

@@ -12,7 +12,7 @@ let db = admin.firestore();
 
 module.exports = router.get("/",(req,res)=>{
     let users = []
-    db.collection("faceId").get().then((data)=>{
+    db.collection("userInfo").get().then((data)=>{
         data.forEach(data=>users.push(data.data()));
         res.render("home",{users:users});
     }).catch()
