@@ -95,7 +95,7 @@ void loop(void) {
           Serial.println("");
 		  
           // Wait a bit before reading the card again
-          delay(1000);
+          delay(500);
         }
         else
         {
