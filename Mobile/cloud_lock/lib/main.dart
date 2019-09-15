@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart' show CameraDescription, availableCameras;
 import 'package:cloud_lock/pages/camera.dart';
+import 'package:cloud_lock/pages/register.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nfc_plugin/models/nfc_event.dart';
 import 'package:flutter_nfc_plugin/nfc_plugin.dart';
@@ -77,9 +78,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onItemTapped(int index) {
-    setState(() async {
+    setState(() {
       _selectedIndex = index;
     });
+
+    if (index == 2) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterPage()));
+    }
   }
 
   Future setCamera() async {
@@ -93,10 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
     NfcPlugin nfcPlugin = NfcPlugin();
     nfcPlugin.onNfcMessage.listen((NfcEvent event) async {
         await setCamera();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CameraPage(camera: _camera,)),
-        );
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => CameraPage(camera: _camera,)));
       }
     );
   }
@@ -150,8 +152,8 @@ class _MyHomePageState extends State<MyHomePage> {
             title: Text('Help'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            title: Text('Settings'),
+            icon: Icon(Icons.supervised_user_circle),
+            title: Text('Register'),
           ),
         ],
         currentIndex: _selectedIndex,

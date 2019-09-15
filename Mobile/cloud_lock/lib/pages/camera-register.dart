@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -6,25 +5,25 @@ import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
-import 'package:path/path.dart' show join;
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:http/http.dart' as http;
 
-// A screen that allows users to take a picture using a given camera.
-class CameraPage extends StatefulWidget {
+
+class CameraRegisterPage extends StatefulWidget {
   final CameraDescription camera;
 
-  const CameraPage({
+  const CameraRegisterPage({
     Key key,
     @required this.camera,
   }) : super(key: key);
 
   @override
-  CameraPageState createState() => CameraPageState();
+  CameraRegisterPageState createState() => CameraRegisterPageState();
 }
 
-class CameraPageState extends State<CameraPage> {
+class CameraRegisterPageState extends State<CameraRegisterPage> {
   CameraController _controller;
   Future<void> _initializeControllerFuture;
 
@@ -51,76 +50,32 @@ class CameraPageState extends State<CameraPage> {
     super.dispose();
   }
 
-  Future<List<String>> getFaceIds() async {
+  Future<http.Response> postFirebase(String body) async {
     try {
-      Response response = await http.get('https://cloudlock-ca508.firebaseapp.com/faceid');
-      if (response.statusCode != 500){
-        String body = response.body;
-        List<dynamic> idObjects = jsonDecode(body);
-        List<String> ids = new List();
-        for (var item in idObjects) {
-          ids.add(item['key']);
-        }
-        return ids;
-      }
-      return new List();
-    } catch (e) {
-      return new List();
-    }
-  }
-
-  Future<bool> verify(Uint8List image, List<String> faceIds) async {
-    try {
-      Map<String, String> headers = new Map();
-      headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
-      headers['Content-Type'] = 'application/octet-stream';
-
-      Response response = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
-      List<dynamic> json = jsonDecode(response.body);
-      String face2 = json[0]['faceId'];
-
-      Map<String, String> body = new Map();
-      body['faceId2'] = face2;
-
-      for (var face in faceIds) {
-        body['faceId1'] = face;
-        headers['Content-Type'] = 'application/json';
-        Response result = await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/verify', headers: headers, body: jsonEncode(body));
-        Map<String, dynamic> json = jsonDecode(result.body);
-        if (json['isIdentical'] == true) {
-          await postFirebaseAnalytics(face, true);
-          return true;
-        }
-      }
-      await postFirebaseAnalytics(face2, false); 
-      return false;
-    } catch (e) {
-        await postFirebaseAnalytics('Unknown', false);
-        return false;
-    }
-  }
-
-  Future<http.Response> postFirebaseAnalytics(String faceId, bool success) async {
-    try {
-      Map<String, dynamic> bodyToSend = new Map();
+      List<dynamic> json = jsonDecode(body);
+      String faceId = json[0]['faceId'];
+      Map<String, String> bodyToSend = new Map();
       bodyToSend['key'] = faceId;
-      bodyToSend['date'] = DateTime.now().toString();
-      bodyToSend['success'] = success;
 
       Map<String, String> headers = new Map();
       headers['Content-Type'] = 'application/json';
 
-      Response response = await http.post('https://cloudlock-ca508.firebaseapp.com/analytics', body: jsonEncode(bodyToSend), headers: headers);
-      print(response.body);
+      Response response = await http.post('https://cloudlock-ca508.firebaseapp.com/putToFirebase', body: jsonEncode(bodyToSend), headers: headers);
       return response;
     } catch (e) {
       return new Response('Failed', 500);
     }
   }
 
-  Future<bool> checkFace(String imagePath) async {
-    List<String> faceIds = await getFaceIds();
-    return await verify(File(imagePath).readAsBytesSync(), faceIds);
+  Future<http.Response> fetchPost(Uint8List image) async {
+    try {
+      Map<String, String> headers = new Map();
+      headers['Ocp-Apim-Subscription-Key'] = 'b6a6d46bb48942be82431c12c5386f05';
+      headers['Content-Type'] = 'application/octet-stream';
+      return await http.post('https://cloudlock-face.cognitiveservices.azure.com/face/v1.0/detect', headers: headers, body: image);
+    } catch (e) {
+       return new Response('Failed', 500); 
+    }
   }
 
   @override
@@ -163,9 +118,9 @@ class CameraPageState extends State<CameraPage> {
 
             // Attempt to take a picture and log where it's been saved.
             await _controller.takePicture(path);
-
-            bool isMatch = await checkFace(path);
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => DisplayPictureScreen(isMatch: isMatch,)));
+            Response res = await fetchPost(File(path).readAsBytesSync());
+            await postFirebase(res.body);
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => SuccessScreen()));
 
           } catch (e) {
             // If an error occurs, log the error to the console.
@@ -177,22 +132,20 @@ class CameraPageState extends State<CameraPage> {
   }
 }
 
-// A widget that displays the picture taken by the user.
-class DisplayPictureScreen extends StatelessWidget {
-  final bool isMatch;
-  const DisplayPictureScreen({Key key, this.isMatch}) : super(key: key);
+class SuccessScreen extends StatelessWidget {
+  const SuccessScreen({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(isMatch ? "Welcome Home!" : "Go Away :(", textAlign: TextAlign.center, style: TextStyle(fontSize: 32, fontFamily: 'IndieFlower')),),
+      appBar: AppBar(title: Text("Sign Up Success!", style: TextStyle(fontSize: 32, fontFamily: 'IndieFlower')),),
       body: Container ( 
         child: Center (
           child: Column (
             mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 HomePicture(),
-                Text(isMatch ? 'Have a Good Day :)' : 'If you are a member of this household, contact the card holder to gain accesss', textAlign: TextAlign.center,),
+                Text('Enjoy safety and convenience at your fingertips'),
               ],
             ) 
         )
